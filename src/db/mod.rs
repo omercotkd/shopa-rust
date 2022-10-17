@@ -4,6 +4,7 @@ use rocket::fairing::AdHoc;
 use std::env;
 
 pub mod lists;
+pub mod users;
 
 pub fn init() -> AdHoc {
     AdHoc::on_ignite("Connecting to MongoDB", |rocket| async {

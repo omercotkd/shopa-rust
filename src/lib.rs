@@ -1,15 +1,18 @@
 #[macro_use]
 extern crate rocket;
 
+#[macro_use]
+extern crate lazy_static;
+
 use dotenv::dotenv;
 
 mod api;
 mod db;
 mod helpers;
-mod services;
 mod models;
+mod services;
 
-use api::routes::lists;
+use api::routes::{lists, register};
 
 #[launch]
 pub async fn rocket() -> _ {
@@ -26,4 +29,5 @@ pub async fn rocket() -> _ {
             ],
         )
         .mount("/api/login", routes![])
+        .mount("/api/register", routes![register::register_new_user])
 }

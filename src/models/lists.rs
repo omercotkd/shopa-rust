@@ -1,14 +1,16 @@
 use mongodb::bson::doc;
 use mongodb::bson::{oid::ObjectId, DateTime, Document};
+use rocket::serde::json::{json, Value};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
+use crate::models::{DbDocument, EmbadedDocument};
 
 #[derive(Deserialize, Debug)]
 pub struct PostItemPayload {
     pub name: String,
-    pub amount: u8,
+    pub amount: i32,
     pub unit: String,
-    pub priority: u8,
+    pub priority: i32,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -38,59 +40,36 @@ pub struct ShopaListDocument {
     pub items: Vec<SingleItem>,
 }
 
-#[derive(Serialize, Deserialize)]
-pub struct NewShopaList {
-    name: String,
-    created_at: DateTime,
-    items: Vec<SingleItem>,
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct JsonShopaList {
-    pub _id: String,
-    pub name: String,
-    pub created_at: String,
-    pub items: Vec<SingleItem>,
-}
-
-impl ShopaListDocument {
-    pub fn new(input: PostShopaList) -> NewShopaList {
-        NewShopaList {
-            name: input.name,
-            created_at: DateTime::now(),
-            items: vec![],
+impl DbDocument for ShopaListDocument {
+    type UserInput = PostShopaList;
+    fn new_document(data: PostShopaList) -> Document {
+        doc! {
+            "name": data.name,
+            "created_at": DateTime::now(),
+            "items": [],
         }
     }
-    pub fn jsonify(self) -> JsonShopaList {
-        JsonShopaList {
-            _id: self._id.to_string(),
-            name: self.name,
-            created_at: self.created_at.to_string(),
-            items: self.items,
-        }
-    }
-
-    pub fn _clone_to_jsonify(&self) -> JsonShopaList {
-        JsonShopaList {
-            _id: self._id.to_string(),
-            name: self.name.to_string(),
-            created_at: self.created_at.to_string(),
-            items: self.items.clone(),
-        }
+    fn jsonify(self) -> Value {
+        json!(
+            {
+                "_id": self._id.to_string(),
+                "name": self.name,
+                "created_at": self.created_at.to_string(),
+                "items": self.items,
+            }
+        )
     }
 }
 
-impl SingleItem {
-    pub fn new(input: PostItemPayload) -> SingleItem {
-        SingleItem {
-            _id: Uuid::new_v4().to_string(),
-            name: input.name,
-            amount: input.amount as i32,
-            unit: input.unit,
-            priority: input.priority as i32,
+impl EmbadedDocument for SingleItem {
+    type UserInput = PostItemPayload;
+    fn new_document(data: Self::UserInput) -> Document {
+        doc! {
+            "_id": Uuid::new_v4().to_string(),
+            "name": data.name,
+            "amount": data.amount,
+            "unit": data.unit,
+            "priority": data.priority,
         }
-    }
-    pub fn to_document(&self) -> Document {
-        doc! {"_id": &self._id, "name": &self.name, "amount": self.amount, "unit": &self.unit, "priority": self.priority}
     }
 }

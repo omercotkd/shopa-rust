@@ -1,12 +1,15 @@
 pub mod lists;
+pub mod users;
+use mongodb::bson;
+use rocket::serde::json;
 
-// TODO in the futrure maybe make evrey model impl the traits here.
-trait _DbModel {
-    fn new();
-    fn jsonify(self);
-    fn clone_to_jsonify(&self);
+pub trait DbDocument {
+    type UserInput;
+    fn new_document(_: Self::UserInput) -> bson::Document;
+    fn jsonify(self) -> json::Value;
 }
 
-trait _DbModelAsJson {}
-
-trait _NewDbModel {}
+pub trait EmbadedDocument{
+    type UserInput;
+    fn new_document(_: Self::UserInput) -> bson::Document;
+}

@@ -1,13 +1,13 @@
-use crate::models::lists::{
-    NewShopaList, PostItemPayload, PostShopaList, ShopaListDocument, SingleItem,
-};
-use mongodb::bson::doc;
+use crate::models::lists::{PostItemPayload, PostShopaList, ShopaListDocument, SingleItem};
+use crate::models::{DbDocument, EmbadedDocument};
 use mongodb::bson::oid::ObjectId;
+use mongodb::bson::{doc, Document};
 use mongodb::Database;
 use rocket::serde::json::Json;
 
 const LIST_COLLECTION_NAME: &str = "lists";
 
+/// return a shopa_list document for the given id
 pub async fn find_shopa_list_by_id(
     db: &Database,
     oid: ObjectId,
@@ -27,38 +27,51 @@ pub async fn find_shopa_list_by_id(
 pub async fn insert_shopa_list(
     db: &Database,
     input: Json<PostShopaList>,
-) -> mongodb::error::Result<String> {
-    let list_collection = db.collection::<NewShopaList>(LIST_COLLECTION_NAME);
+) -> Result<Option<String>, mongodb::error::Error> {
+    let list_collection = db.collection::<Document>(LIST_COLLECTION_NAME);
 
     let insert_one_result = list_collection
-        .insert_one(ShopaListDocument::new(input.into_inner()), None)
+        .insert_one(ShopaListDocument::new_document(input.into_inner()), None)
         .await?;
 
-    Ok(insert_one_result.inserted_id.to_string())
+    let new_list_id = match insert_one_result.inserted_id.as_object_id() {
+        Some(id) => id,
+        None => return Ok(None),
+    };
+
+    Ok(Some(new_list_id.to_string()))
 }
 
 pub async fn add_item_to_shopa_list(
     db: &Database,
     input: Json<PostItemPayload>,
     list_id: ObjectId,
-) -> mongodb::error::Result<String> {
-    let new_item = SingleItem::new(input.into_inner());
+) -> Result<Option<String>, mongodb::error::Error> {
+    let new_item = SingleItem::new_document(input.into_inner());
 
     let list_collection = db.collection::<ShopaListDocument>(LIST_COLLECTION_NAME);
 
     list_collection
         .update_one(
             doc! {"_id": list_id},
-            doc! {"$push": {"items": new_item.to_document()}},
+            doc! {"$push": {"items": &new_item}},
             None,
         )
         .await?;
 
-    Ok(new_item._id)
+    let item_id = match new_item.get_str("_id") {
+        Ok(id) => id,
+        Err(_) => return Ok(None)
+    };
+
+    Ok(Some(item_id.to_string()))
 }
 
-pub async fn delete_items_from_shopa_list(db: &Database, items_ids: Vec<String>, list_id: ObjectId) -> mongodb::error::Result<String> {
-
+pub async fn delete_items_from_shopa_list(
+    db: &Database,
+    items_ids: Vec<String>,
+    list_id: ObjectId,
+) -> mongodb::error::Result<String> {
     let list_collection = db.collection::<ShopaListDocument>(LIST_COLLECTION_NAME);
 
     list_collection

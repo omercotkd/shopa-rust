@@ -12,7 +12,7 @@ mod helpers;
 mod models;
 mod services;
 
-use api::routes::{lists, register};
+use api::routes::{lists, login, register};
 
 #[launch]
 pub async fn rocket() -> _ {
@@ -28,6 +28,9 @@ pub async fn rocket() -> _ {
                 lists::create_list
             ],
         )
-        .mount("/api/login", routes![])
+        .mount(
+            "/api/login",
+            routes![login::login_with_email_or_phone],
+        )
         .mount("/api/register", routes![register::register_new_user])
 }

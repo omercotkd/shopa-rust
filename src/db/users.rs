@@ -7,6 +7,7 @@ use mongodb::bson::{doc, Document};
 use mongodb::Database;
 use rocket::serde::json::Json;
 
+
 const USER_COLLECTION_NAME: &str = "users";
 
 pub async fn insert_new_user(

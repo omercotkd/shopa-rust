@@ -31,6 +31,36 @@ impl TryFrom<String> for Email {
     }
 }
 
+#[derive(Deserialize)]
+#[serde(try_from = "String")]
+pub struct PhoneNumber(String);
+
+impl PhoneNumber {
+    pub fn try_new(phone: String) -> Result<Self, String> {
+        if validators::validate_phone_number(&phone) {
+            Ok(Self(phone))
+        } else {
+            Err(format!("Invalid phone {}", phone))
+        }
+    }
+    pub fn into_inner(self) -> String {
+        self.0
+    }
+    pub fn inner(&self) -> &str {
+        &self.0
+    }
+}
+
+impl TryFrom<String> for PhoneNumber {
+    type Error = String;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        PhoneNumber::try_new(value)
+    }
+}
+
+
+
 // maybe in the future use it if I need to get obi in json
 // #[derive(Deserialize)]
 // #[serde(try_from = "String")]

@@ -1,16 +1,17 @@
+use crate::helpers::types::{Email, PhoneNumber};
 use crate::models::DbDocument;
-use crate::helpers::types::Email;
 use mongodb::bson::doc;
 use mongodb::bson::{oid::ObjectId, DateTime, Document};
 use rocket::serde::json::{json, Value};
 use serde::{Deserialize, Serialize};
 
-
 #[derive(Deserialize)]
 pub struct NewUserPayload {
     pub first_name: String,
     pub last_name: String,
-    pub email: Email
+    pub email: Email,
+    pub password: String,
+    pub phone: PhoneNumber,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -20,6 +21,8 @@ pub struct UserDocument {
     pub last_name: String,
     pub email: String,
     pub created_at: DateTime,
+    pub password: String,
+    pub phone: String,
 }
 
 impl DbDocument for UserDocument {
@@ -29,7 +32,9 @@ impl DbDocument for UserDocument {
             "first_name": data.first_name,
             "last_name": data.last_name,
             "created_at": DateTime::now(),
-            "email": data.email.into_inner()
+            "email": data.email.into_inner(),
+            "password": data.password,
+            "phone": data.phone.into_inner()
         }
     }
     fn jsonify(self) -> Value {
@@ -40,7 +45,8 @@ impl DbDocument for UserDocument {
                 "last_name": self.last_name,
                 "created_at": self.created_at.to_string(),
                 "email": self.email,
-                
+                "phone": self.phone
+
             }
         )
     }

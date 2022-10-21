@@ -1,16 +1,17 @@
 use crate::db::users::{get_user_by_email, insert_new_user};
-use crate::helpers::response;
+use crate::helpers::{response, password::hash_password};
 use crate::models::users::NewUserPayload;
 use mongodb::Database;
 use rocket::serde::json::{json, Json};
 use rocket::State;
+
 
 #[post("/", format = "json", data = "<new_user>")]
 pub async fn register_new_user(
     db: &State<Database>,
     new_user: Json<NewUserPayload>,
 ) -> Result<response::Success, response::Error> {
-    let new_user = new_user.into_inner();
+    let mut new_user = new_user.into_inner();
 
     match get_user_by_email(&db, new_user.email.inner()).await {
         Ok(opt) => match opt {
@@ -24,6 +25,13 @@ pub async fn register_new_user(
             ))
         }
     }
+
+    let hased_password = match hash_password(&new_user.password){
+        Ok(v) => v,
+        Err(e) => return Err(response::ApiError::build(400, &e))
+    };
+
+    new_user.password = hased_password;
 
     let user_id = match insert_new_user(&db, new_user).await {
         Ok(opt) => match opt {

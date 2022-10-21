@@ -14,6 +14,18 @@ pub struct NewUserPayload {
     pub phone: PhoneNumber,
 }
 
+#[derive(Deserialize)]
+pub struct LoginWithEmailPayload {
+    pub email: Email,
+    pub password: String,
+}
+
+#[derive(Deserialize)]
+pub struct LoginWithPhonePayload {
+    pub phone: PhoneNumber,
+    pub password: String,
+}
+
 #[derive(Serialize, Deserialize, Debug)]
 pub struct UserDocument {
     pub _id: ObjectId,

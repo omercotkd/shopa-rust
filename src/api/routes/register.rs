@@ -1,10 +1,9 @@
-use crate::db::users::{get_user_by_email, insert_new_user};
-use crate::helpers::{response, password::hash_password};
+use crate::db::users::{insert_new_user, test_user_exist};
+use crate::helpers::{password::hash_password, response};
 use crate::models::users::NewUserPayload;
 use mongodb::Database;
 use rocket::serde::json::{json, Json};
 use rocket::State;
-
 
 #[post("/", format = "json", data = "<new_user>")]
 pub async fn register_new_user(
@@ -13,11 +12,15 @@ pub async fn register_new_user(
 ) -> Result<response::Success, response::Error> {
     let mut new_user = new_user.into_inner();
 
-    match get_user_by_email(&db, new_user.email.inner()).await {
-        Ok(opt) => match opt {
-            Some(_) => return Err(response::ApiError::build(412, "email alredy in use")),
-            None => {}
-        },
+    match test_user_exist(&db, new_user.phone.inner(), new_user.email.inner()).await {
+        Ok(exist) => {
+            if exist {
+                return Err(response::ApiError::build(
+                    412,
+                    "email or phone alredy in use",
+                ));
+            }
+        }
         Err(_) => {
             return Err(response::ApiError::build(
                 400,
@@ -26,9 +29,9 @@ pub async fn register_new_user(
         }
     }
 
-    let hased_password = match hash_password(&new_user.password){
+    let hased_password = match hash_password(&new_user.password) {
         Ok(v) => v,
-        Err(e) => return Err(response::ApiError::build(400, &e))
+        Err(e) => return Err(response::ApiError::build(400, &e)),
     };
 
     new_user.password = hased_password;

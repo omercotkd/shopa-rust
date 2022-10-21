@@ -30,7 +30,7 @@ pub async fn rocket() -> _ {
         )
         .mount(
             "/api/login",
-            routes![login::login_with_email_or_phone],
+            routes![login::login_with_email, login::login_with_phone],
         )
         .mount("/api/register", routes![register::register_new_user])
 }

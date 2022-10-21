@@ -59,8 +59,6 @@ impl TryFrom<String> for PhoneNumber {
     }
 }
 
-
-
 // maybe in the future use it if I need to get obi in json
 // #[derive(Deserialize)]
 // #[serde(try_from = "String")]

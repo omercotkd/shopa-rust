@@ -1,5 +1,5 @@
 use crate::db::users::{get_user_by_email, get_user_by_phone};
-use crate::helpers::{password::verify_password, response};
+use crate::helpers::{security::verify_password, response};
 use crate::models::users::{LoginWithEmailPayload, LoginWithPhonePayload};
 use mongodb::Database;
 use rocket::serde::json::{json, Json};

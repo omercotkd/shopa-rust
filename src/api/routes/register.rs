@@ -1,5 +1,5 @@
 use crate::db::users::{insert_new_user, test_user_exist};
-use crate::helpers::{password::hash_password, response};
+use crate::helpers::{security::hash_password, response};
 use crate::models::users::NewUserPayload;
 use mongodb::Database;
 use rocket::serde::json::{json, Json};

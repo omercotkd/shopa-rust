@@ -12,6 +12,9 @@ serde = "1.0.145"
 regex = "1.6.0"
 lazy_static = "1.4.0"
 argon2 = "0.4"
+jwt = "0.16.0"
+hmac = "0.12.1"
+sha2 = "0.10.6"
 
 [dependencies.rand_core]
 version = "0.6"

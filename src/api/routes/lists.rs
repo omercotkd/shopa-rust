@@ -7,12 +7,18 @@ use crate::models::DbDocument;
 use mongodb::Database;
 use rocket::serde::json::{json, Json};
 use rocket::State;
+use rocket::http::CookieJar;
+use super::super::middleware::verify_cookie_access_token;
 
 #[get("/?<list_id>")]
 pub async fn get_list(
     db: &State<Database>,
     list_id: String,
+    cookies: &CookieJar<'_>,
 ) -> Result<response::Success, response::Error> {
+
+    let user_id = verify_cookie_access_token(cookies)?;
+    println!("user_id: {}", user_id);
     let list_id = validators::valid_object_id(&list_id)?;
 
     match find_shopa_list_by_id(&db, list_id).await {
